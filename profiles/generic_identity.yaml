@@ -1,0 +1,42 @@
+# Perfil "identidad": no traduce nada, solo copia los códigos tal cual.
+# Úsalo como plantilla: copia este archivo, ponle el nombre del mando
+# (o su vendor:product) y cambia solo las líneas donde el mando real
+# manda un código distinto al estándar Xbox 360.
+#
+# Cómo obtener vendor_id / product_id de tu mando:
+#   cat /proc/bus/input/devices   (busca la línea "I: Bus=... Vendor=... Product=...")
+#
+# Cómo saber qué código manda cada botón/eje real:
+#   sudo evtest   (elige tu mando y pulsa cada botón/stick)
+
+match:
+  # Puedes matchear por nombre exacto, o por vendor/product (más fiable).
+  name: null            # ej: "Generic X-Box pad"
+  vendor_id: null       # ej: "0x0079"
+  product_id: null      # ej: "0x0011"
+
+# Mapeo de botones: código_real -> código_estándar (nombres evdev, sin el prefijo ecodes.)
+buttons:
+  BTN_A: BTN_A
+  BTN_B: BTN_B
+  BTN_X: BTN_X
+  BTN_Y: BTN_Y
+  BTN_TL: BTN_TL
+  BTN_TR: BTN_TR
+  BTN_SELECT: BTN_SELECT
+  BTN_START: BTN_START
+  BTN_MODE: BTN_MODE
+  BTN_THUMBL: BTN_THUMBL
+  BTN_THUMBR: BTN_THUMBR
+
+# Mapeo de ejes: código_real -> código_estándar
+# invert: true si el eje viene invertido en el mando real
+axes:
+  ABS_X:    { to: ABS_X,    invert: false }
+  ABS_Y:    { to: ABS_Y,    invert: false }
+  ABS_RX:   { to: ABS_RX,   invert: false }
+  ABS_RY:   { to: ABS_RY,   invert: false }
+  ABS_Z:    { to: ABS_Z,    invert: false }   # gatillo izquierdo
+  ABS_RZ:   { to: ABS_RZ,   invert: false }   # gatillo derecho
+  ABS_HAT0X: { to: ABS_HAT0X, invert: false } # d-pad horizontal
+  ABS_HAT0Y: { to: ABS_HAT0Y, invert: false } # d-pad vertical

@@ -1,0 +1,16 @@
+# Lanza gamepad-bridge@.service automáticamente cuando se conecta
+# un dispositivo que el kernel clasifica como joystick/gamepad.
+#
+# Instalación: copia este archivo a /etc/udev/rules.d/ y recarga:
+#   sudo cp 99-gamepad.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger
+
+ACTION=="add", SUBSYSTEM=="input", ENV{ID_INPUT_JOYSTICK}=="1", \
+    ENV{DEVNAME}=="/dev/input/event*", \
+    TAG+="systemd", ENV{SYSTEMD_WANTS}="gamepad-bridge@%k.service"
+
+# Permite que un usuario normal (grupo 'input') pueda usar /dev/uinput
+# sin sudo. Requiere que tu usuario esté en el grupo 'input':
+#   sudo usermod -aG input $USER
+KERNEL=="uinput", MODE="0660", GROUP="input", TAG+="uaccess"

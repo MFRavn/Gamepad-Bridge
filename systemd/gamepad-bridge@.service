@@ -1,0 +1,12 @@
+[Unit]
+Description=Gamepad translation bridge para %i
+After=local-fs.target
+
+[Service]
+Type=simple
+# %i viene del nombre del dispositivo, ej: event7 (ver 99-gamepad.rules)
+ExecStart=/usr/bin/python3 /opt/gamepad-bridge/bridge.py /dev/input/%i
+Restart=no
+
+[Install]
+WantedBy=default.target
