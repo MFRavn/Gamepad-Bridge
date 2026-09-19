@@ -170,7 +170,7 @@ def run_bridge(source_path: str):
     try:
         dev.grab()  # evita que el mando "original" también mande eventos duplicados
     except OSError:
-        log.warning("No se pudo hacer grab() del dispositivo (¿ya está ocupado por otro proceso?)")
+        log.warning("No se pudo hacer grab() del dispositivo (¿está ocupado por otro proceso?)")
 
     log.info("Traduciendo eventos... (Ctrl+C para salir)")
     exit_code = 0
