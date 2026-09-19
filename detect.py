@@ -8,9 +8,13 @@ Uso manual (debug):
 Uso normal: bridge.py importa list_gamepads() y find_profile_for().
 """
 import glob
+import logging
 import os
 import yaml
+# pyrefly: ignore [missing-import]
 from evdev import InputDevice, ecodes, list_devices
+
+log = logging.getLogger("gamepad-bridge.detect")
 
 PROFILES_DIR = os.path.join(os.path.dirname(__file__), "profiles")
 
@@ -81,11 +85,12 @@ def find_profile_for(dev: InputDevice, profiles=None):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
     pads = list_gamepads()
     if not pads:
-        print("No se detectó ningún mando. Conecta uno y vuelve a intentar.")
+        log.info("No se detectó ningún mando. Conecta uno y vuelve a intentar.")
     for dev in pads:
         profile = find_profile_for(dev)
-        print(f"- {dev.path}  {dev.name}  vendor={hex(dev.info.vendor)} "
-              f"product={hex(dev.info.product)}")
-        print(f"  Perfil elegido: {profile.get('_path')}")
+        log.info("- %s  %s  vendor=%s product=%s",
+                  dev.path, dev.name, hex(dev.info.vendor), hex(dev.info.product))
+        log.info("  Perfil elegido: %s", profile.get("_path"))

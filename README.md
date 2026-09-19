@@ -1,10 +1,25 @@
-# gamepad-bridge
+# gamepad-bridge (v1.0)
 
-Capa de traducción/compatibilidad para Linux: coge mandos genéricos
+Capa de traducción/compatibilidad para Linux: toma mandos genéricos
 (cada uno con su propio mapeo de botones) y los traduce en tiempo
 real a un mando virtual "Xbox 360 Controller" estándar, usando
 `uinput`. Así cualquier juego, Steam Input o SDL2 lo reconoce sin
 configuración adicional.
+
+**Novedades v1.0:**
+- Calibración automática de ejes: ya no se asume que el mando usa el
+  mismo rango de valores que un Xbox 360 real. `bridge.py` lee el
+  rango nativo de cada eje (`dev.absinfo`) y lo escala linealmente al
+  rango estándar, mando por mando.
+- Logging robusto vía el módulo `logging` (visible con
+  `journalctl -u gamepad-bridge@*` cuando corre como servicio).
+  Nivel configurable con `GAMEPAD_BRIDGE_LOGLEVEL` (`DEBUG` para ver
+  cada evento traducido, útil al depurar un perfil nuevo).
+- Manejo explícito de la desconexión del mando: al perder el
+  dispositivo, la instancia se cierra limpia (código 0, no cuenta
+  como fallo). `Restart=on-failure` en la unit de systemd solo actúa
+  ante errores reales; una reconexión física dispara una unit nueva
+  vía udev.
 
 ## Cómo funciona
 
@@ -18,7 +33,7 @@ Mando físico (evdev) --> bridge.py (aplica profiles/*.yaml) --> uinput --> mand
 - Si no hay un perfil específico, usa `profiles/generic_identity.yaml`
   (no traduce nada, es la plantilla base).
 
-## Instalación (en CachyOS)
+## Instalación en CachyOS
 
 ```bash
 sudo pacman -S python-evdev python-yaml   # o: pip install evdev pyyaml --break-system-packages
@@ -75,14 +90,39 @@ sudo evtest
    derecha el código estándar al que debe traducirse.
 5. Reconecta el mando (o relanza `bridge.py` a mano) para probar.
 
-## Limitaciones de este prototipo
+## Logging y depuración
+
+Como servicio, revisa los logs con:
+
+```bash
+journalctl -u 'gamepad-bridge@*' -f
+```
+
+Para ver cada evento traducido (útil al ajustar un perfil), sube el
+nivel de log antes de lanzarlo a mano:
+
+```bash
+GAMEPAD_BRIDGE_LOGLEVEL=DEBUG sudo -E python3 bridge.py /dev/input/eventX
+```
+
+O edita `Environment=GAMEPAD_BRIDGE_LOGLEVEL=DEBUG` en
+`systemd/gamepad-bridge@.service` y recarga (`daemon-reload`) si
+quieres ese nivel de forma permanente en el servicio.
+
+## Limitaciones de esta versión
 
 - No traduce vibración/force feedback (solo entrada, no salida).
 - El "grab" del dispositivo original es exclusivo: mientras el bridge
   corre, el mando físico deja de generar eventos por su cuenta (es
   intencional, para no tener el mando físico y el virtual mandando
   inputs duplicados).
-- Los rangos de ejes (`ABS_X`, etc.) del mando virtual están fijados a
-  valores típicos de Xbox 360; si tu mando real tiene un rango de
-  fábrica muy distinto, puede que quieras añadir escalado (no incluido
-  aún, es el siguiente paso lógico si hace falta).
+- Solo se ha podido validar la lógica de escalado con datos simulados,
+  no con hardware real (sin mando disponible en el entorno de
+  desarrollo). Antes de confiar en la calibración con tu mando,
+  prueba con `GAMEPAD_BRIDGE_LOGLEVEL=DEBUG` y verifica que los
+  valores traducidos tienen sentido.
+- Sigue sin soportar múltiples mandos simultáneos como flujo
+  "oficial" (cada uno lanza su propia instancia vía udev, pero no hay
+  gestión centralizada ni asignación de "jugador 1/2/3"), ni
+  vibración/force feedback, ni una herramienta que genere perfiles
+  automáticamente a partir de `evtest`.

@@ -6,7 +6,18 @@ After=local-fs.target
 Type=simple
 # %i viene del nombre del dispositivo, ej: event7 (ver 99-gamepad.rules)
 ExecStart=/usr/bin/python3 /opt/gamepad-bridge/bridge.py /dev/input/%i
-Restart=no
+Environment=GAMEPAD_BRIDGE_LOGLEVEL=INFO
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gamepad-bridge-%i
+
+# bridge.py sale con código 0 cuando el mando se desconecta con
+# normalidad, así que Restart=on-failure solo reintenta ante un
+# fallo real (excepción no controlada, ExecStart mal configurado, etc).
+# Un mando reconectado dispara una unit NUEVA vía udev, no un reinicio
+# de esta misma instancia (el número de /dev/input/eventX puede cambiar).
+Restart=on-failure
+RestartSec=2
 
 [Install]
 WantedBy=default.target
